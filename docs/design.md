@@ -1,4 +1,4 @@
-# PicoFlow — Design & Architecture
+# PocoFlow — Design & Architecture
 
 **Version:** 0.1.0
 **Date:** 2026-02-17
@@ -6,18 +6,18 @@
 
 ---
 
-## Why PicoFlow?
+## Why PocoFlow?
 
 PocketFlow's 100-line core is an elegant idea, but four weaknesses surfaced during SPL-Flow development:
 
-| # | Weakness | PicoFlow fix |
+| # | Weakness | PocoFlow fix |
 |---|----------|-------------|
 | 1 | Shared store is a raw dict — no schema, no type safety | `Store` class with optional schema + type-checked writes |
 | 2 | Edge API inconsistency — `>>` vs `- "action" >>` causes silent `UserWarning` | Single unambiguous API: `.then("action", next_node)` |
 | 3 | No built-in async between nodes — caller must wrap `asyncio.run()` manually | `AsyncNode` base class — implement `exec_async()` and the framework handles the rest |
 | 4 | No observability, no checkpointing | Hook system + optional `checkpoint_dir` with `snapshot/restore` |
 
-PicoFlow keeps PocketFlow's best idea — the **nano-ETL abstraction** — while hardening the gaps.
+PocoFlow keeps PocketFlow's best idea — the **nano-ETL abstraction** — while hardening the gaps.
 
 ---
 
@@ -34,7 +34,7 @@ PicoFlow keeps PocketFlow's best idea — the **nano-ETL abstraction** — while
 ### Store
 
 ```python
-from src.picoflow import Store
+from src.pocoflow import Store
 
 store = Store(
     data={"user_input": "", "adapter": "claude_cli"},
@@ -63,7 +63,7 @@ post(store, prep, exec)  → Load: write results back, return next action string
 ```
 
 ```python
-from src.picoflow import Node
+from src.pocoflow import Node
 
 class SummariseNode(Node):
     max_retries = 3      # retry exec() up to 3 times on exception
@@ -107,7 +107,7 @@ No more `>>` shorthand. No more `UserWarning: action not in ['default']`.
 ### AsyncNode
 
 ```python
-from src.picoflow import AsyncNode
+from src.pocoflow import AsyncNode
 import asyncio
 
 class FetchNode(AsyncNode):
@@ -122,7 +122,7 @@ The surrounding `Flow` stays synchronous; async is contained inside the node.
 ### Flow
 
 ```python
-from src.picoflow import Flow
+from src.pocoflow import Flow
 
 flow = Flow(
     start=summarise_node,
@@ -164,7 +164,7 @@ To resume from step 2, restore `step_002_*.json` and pass the execute node as `r
 
 ## Comparison with PocketFlow
 
-| Feature | PocketFlow | PicoFlow |
+| Feature | PocketFlow | PocoFlow |
 |---------|-----------|----------|
 | Core size | ~100 lines | ~320 lines |
 | Shared state | raw dict | typed Store with schema |
@@ -178,7 +178,7 @@ To resume from step 2, restore `step_002_*.json` and pass the execute node as `r
 
 ---
 
-## Migration Guide (PocketFlow → PicoFlow)
+## Migration Guide (PocketFlow → PocoFlow)
 
 ### 1. Replace imports
 
@@ -187,7 +187,7 @@ To resume from step 2, restore `step_002_*.json` and pass the execute node as `r
 from pocketflow import Node, Flow
 
 # After
-from src.picoflow import Node, AsyncNode, Flow, Store
+from src.pocoflow import Node, AsyncNode, Flow, Store
 ```
 
 ### 2. Replace edge wiring
@@ -249,7 +249,7 @@ flow.on("node_end", lambda name, action, elapsed, s:
 ## File Map
 
 ```
-src/picoflow/
+src/pocoflow/
   __init__.py    — public API: Store, Node, AsyncNode, Flow
   store.py       — Store implementation (~158 lines)
   node.py        — Node + AsyncNode (~178 lines)

@@ -1,14 +1,14 @@
-"""PicoFlow Workflow Monitor — Streamlit UI for run observability.
+"""PocoFlow Workflow Monitor — Streamlit UI for run observability.
 
 Standalone usage:
-    streamlit run picoflow/ui/monitor.py -- /path/to/picoflow.db
+    streamlit run pocoflow/ui/monitor.py -- /path/to/pocoflow.db
 
 Embedded usage (in any Streamlit page):
-    from picoflow.ui.monitor import render_workflow_monitor
-    render_workflow_monitor("picoflow.db")
+    from pocoflow.ui.monitor import render_workflow_monitor
+    render_workflow_monitor("pocoflow.db")
 
 Requires the optional [ui] extra:
-    pip install picoflow[ui]
+    pip install pocoflow[ui]
 
 Features
 --------
@@ -56,20 +56,20 @@ def _duration(row: dict) -> str:
 
 def render_workflow_monitor(
     db_path: str | Path,
-    title: str = "PicoFlow Monitor",
+    title: str = "PocoFlow Monitor",
 ) -> None:
     """Render the full workflow monitor UI into the current Streamlit page.
 
     Parameters
     ----------
     db_path :
-        Path to the SQLite database file (``picoflow.db`` or similar).
+        Path to the SQLite database file (``pocoflow.db`` or similar).
         Creates the file / schema if it does not exist.
     title :
         Section heading displayed at the top of the monitor.
     """
     import streamlit as st
-    from picoflow.db import WorkflowDB
+    from pocoflow.db import WorkflowDB
 
     db_path = Path(db_path)
     db = WorkflowDB(db_path)
@@ -230,8 +230,8 @@ def render_workflow_monitor(
 
                 db_path_str = str(db_path)
                 snippet = f"""\
-from picoflow.db import WorkflowDB
-from picoflow import Flow
+from pocoflow.db import WorkflowDB
+from pocoflow import Flow
 
 # Restore store from checkpoint
 db = WorkflowDB("{db_path_str}")
@@ -278,22 +278,22 @@ def _main() -> None:
     """Standalone Streamlit app.
 
     Usage:
-        streamlit run picoflow/ui/monitor.py
-        streamlit run picoflow/ui/monitor.py -- picoflow.db
+        streamlit run pocoflow/ui/monitor.py
+        streamlit run pocoflow/ui/monitor.py -- pocoflow.db
     """
     import streamlit as st
 
     # db_path from CLI arg (passed after `--` to streamlit)
-    db_arg = sys.argv[1] if len(sys.argv) > 1 else "picoflow.db"
+    db_arg = sys.argv[1] if len(sys.argv) > 1 else "pocoflow.db"
 
     st.set_page_config(
-        page_title="PicoFlow Monitor",
+        page_title="PocoFlow Monitor",
         page_icon="⚡",
         layout="wide",
         initial_sidebar_state="collapsed",
     )
 
-    st.title("⚡ PicoFlow Workflow Monitor")
+    st.title("⚡ PocoFlow Workflow Monitor")
     st.caption("Built with love by Claude & digital-duck 🦆")
     st.divider()
 

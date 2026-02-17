@@ -1,4 +1,4 @@
-# PicoFlow
+# PocoFlow
 
 > Lightweight LLM workflow orchestration.
 > A hardened evolution of [PocketFlow](https://github.com/The-Pocket/PocketFlow).
@@ -9,13 +9,13 @@ Built with love by **Claude & digital-duck** 🦆
 
 ## What It Is
 
-PicoFlow is a minimal framework for building LLM pipelines as **directed graphs of
+PocoFlow is a minimal framework for building LLM pipelines as **directed graphs of
 nano-ETL nodes** communicating through a shared, typed Store.
 
 It keeps PocketFlow's best idea — the `prep | exec | post` abstraction — and fixes
 the weaknesses that surface in production:
 
-| Weakness | PicoFlow fix |
+| Weakness | PocoFlow fix |
 |----------|-------------|
 | Raw dict store — no type safety | `Store` with optional schema + `TypeError` on bad writes |
 | Ambiguous `>>` edge API | Single clear API: `.then("action", next_node)` |
@@ -34,14 +34,14 @@ the weaknesses that surface in production:
 
 ```bash
 # Core
-pip install picoflow
+pip install pocoflow
 
 # With Streamlit monitor UI
-pip install "picoflow[ui]"
+pip install "pocoflow[ui]"
 
 # Local dev (from the digital-duck monorepo)
 pip install -e ~/projects/digital-duck/dd-logging
-pip install -e ~/projects/digital-duck/picoflow"[ui,dev]"
+pip install -e ~/projects/digital-duck/pocoflow"[ui,dev]"
 ```
 
 ---
@@ -49,7 +49,7 @@ pip install -e ~/projects/digital-duck/picoflow"[ui,dev]"
 ## Quick Start
 
 ```python
-from picoflow import Node, Flow, Store
+from pocoflow import Node, Flow, Store
 
 class SummariseNode(Node):
     def prep(self, store):
@@ -63,14 +63,14 @@ class SummariseNode(Node):
         return "done"
 
 store = Store({"document": "...", "summary": ""})
-Flow(start=SummariseNode(), db_path="picoflow.db", flow_name="summarise").run(store)
+Flow(start=SummariseNode(), db_path="pocoflow.db", flow_name="summarise").run(store)
 print(store["summary"])
 ```
 
 Then open the monitor:
 
 ```bash
-streamlit run picoflow/ui/monitor.py -- picoflow.db
+streamlit run pocoflow/ui/monitor.py -- pocoflow.db
 ```
 
 ---
@@ -94,7 +94,7 @@ post(store, prep, exec)  → Load:      write results back, return next action s
 | `post` | Load + Route | writes store, returns action string |
 
 ```python
-from picoflow import Node
+from pocoflow import Node
 
 class CallLLMNode(Node):
     max_retries = 3       # retry exec() automatically on failure
@@ -114,7 +114,7 @@ class CallLLMNode(Node):
 ### Store — typed shared state
 
 ```python
-from picoflow import Store
+from pocoflow import Store
 
 store = Store(
     data={"query": "", "result": ""},
@@ -135,7 +135,7 @@ store2 = Store.restore("/tmp/run_42/step_002.json")
 ### Flow — directed graph with hooks
 
 ```python
-from picoflow import Flow, Store
+from pocoflow import Flow, Store
 
 # Wire nodes with unambiguous named edges
 a.then("ok",    b)
@@ -146,7 +146,7 @@ a.then("*",     fallback)   # wildcard: matches any unhandled action
 flow = Flow(
     start=a,
     flow_name="my_pipeline",    # label shown in the monitor UI
-    db_path="picoflow.db",      # SQLite: runs, events, checkpoints
+    db_path="pocoflow.db",      # SQLite: runs, events, checkpoints
     checkpoint_dir="/tmp/ckpt", # also write JSON snapshots (optional)
     max_steps=50,               # guard against infinite loops
 )
@@ -165,7 +165,7 @@ flow.run(store)
 ### AsyncNode — parallel sub-tasks
 
 ```python
-from picoflow import AsyncNode
+from pocoflow import AsyncNode
 import asyncio
 
 class FetchNode(AsyncNode):
@@ -196,9 +196,9 @@ pf_events      — ordered event log (flow_start → node_start/end/error → fl
 ```
 
 ```python
-from picoflow import WorkflowDB
+from pocoflow import WorkflowDB
 
-db = WorkflowDB("picoflow.db")
+db = WorkflowDB("pocoflow.db")
 
 # List all runs
 for run in db.list_runs():
@@ -221,7 +221,7 @@ WAL mode is enabled so the Streamlit monitor can poll while a flow is running.
 For flows that take minutes or hours, use `run_background()` to avoid blocking:
 
 ```python
-flow = Flow(start=my_node, db_path="picoflow.db", flow_name="research")
+flow = Flow(start=my_node, db_path="pocoflow.db", flow_name="research")
 
 # Returns immediately — flow runs in a daemon thread
 handle = flow.run_background(store)
@@ -240,9 +240,9 @@ handle.cancel()
 ### Resume after crash
 
 ```python
-from picoflow import WorkflowDB, Flow
+from pocoflow import WorkflowDB, Flow
 
-db = WorkflowDB("picoflow.db")
+db = WorkflowDB("pocoflow.db")
 
 # Find the failed run
 runs = [r for r in db.list_runs() if r["status"] == "failed"]
@@ -254,7 +254,7 @@ last = checkpoints[-1]
 store = db.load_checkpoint(failed["run_id"], step=last["step"])
 
 # Resume from the node after the last checkpoint
-flow = Flow(start=my_flow_start, db_path="picoflow.db")
+flow = Flow(start=my_flow_start, db_path="pocoflow.db")
 flow.run(store, resume_from=node_after_crash)
 ```
 
@@ -266,14 +266,14 @@ Visualise and manage all workflow runs from a browser.
 
 **Standalone:**
 ```bash
-streamlit run picoflow/ui/monitor.py -- picoflow.db
+streamlit run pocoflow/ui/monitor.py -- pocoflow.db
 ```
 
 **Embedded in any Streamlit page:**
 ```python
-from picoflow.ui.monitor import render_workflow_monitor
+from pocoflow.ui.monitor import render_workflow_monitor
 
-render_workflow_monitor("picoflow.db")
+render_workflow_monitor("pocoflow.db")
 ```
 
 Features:
@@ -287,29 +287,29 @@ Features:
 
 ## Logging
 
-PicoFlow uses [dd-logging](https://github.com/digital-duck/dd-logging) for structured,
+PocoFlow uses [dd-logging](https://github.com/digital-duck/dd-logging) for structured,
 namespaced, file-backed log output.
 
 ```python
-from picoflow.logging import setup_logging, get_logger
+from pocoflow.logging import setup_logging, get_logger
 
 # Set up once at app start (e.g. in CLI entry point or Streamlit cache_resource)
 log_path = setup_logging("run", log_level="debug", adapter="openrouter")
 # → logs/run-openrouter-20260217-143022.log
 
 # In any module
-_log = get_logger("nodes.summarise")   # → picoflow.nodes.summarise
+_log = get_logger("nodes.summarise")   # → pocoflow.nodes.summarise
 _log.info("summarising  len=%d", len(text))
 ```
 
 Logger hierarchy:
 ```
-picoflow
-├── picoflow.store
-├── picoflow.node
-├── picoflow.flow
-├── picoflow.db
-└── picoflow.runner
+pocoflow
+├── pocoflow.store
+├── pocoflow.node
+├── pocoflow.flow
+├── pocoflow.db
+└── pocoflow.runner
 ```
 
 ---
@@ -325,7 +325,7 @@ node_a - "action" >> node_b      # named edge (correct but inconsistent)
 shared = {}                      # raw dict — no type safety
 
 # After
-from picoflow import Node, Flow, Store
+from pocoflow import Node, Flow, Store
 
 node_a.then("action", node_b)    # single unambiguous API, always
 shared = Store(data=shared_dict) # typed, observable, checkpointable
@@ -337,20 +337,20 @@ flow.run(shared)                 # plain dict also accepted for backward compat
 ## Project Layout
 
 ```
-picoflow/
+pocoflow/
   __init__.py      — public API: Store, Node, AsyncNode, Flow, WorkflowDB, RunHandle
   store.py         — typed, observable, JSON-checkpointable shared state
   node.py          — Node (sync) + AsyncNode (async) + retry
   flow.py          — directed graph runner: hooks, JSON + SQLite checkpoints, background
   db.py            — WorkflowDB: SQLite schema, CRUD for runs / checkpoints / events
-  logging.py       — dd-logging wrapper (picoflow.* namespace)
+  logging.py       — dd-logging wrapper (pocoflow.* namespace)
   runner.py        — RunHandle: status, wait, cancel
   ui/
     monitor.py     — Streamlit workflow monitor (standalone + embeddable)
 examples/
   hello.py         — minimal two-node flow with hooks
 tests/
-  test_picoflow.py — 25 tests: Store, Node, Flow, WorkflowDB, RunHandle
+  test_pocoflow.py — 25 tests: Store, Node, Flow, WorkflowDB, RunHandle
 docs/
   design.md        — architecture, design decisions, migration guide
 ```
@@ -359,7 +359,7 @@ docs/
 
 ## Comparison with PocketFlow
 
-| Feature | PocketFlow | PicoFlow v0.2 |
+| Feature | PocketFlow | PocoFlow v0.2 |
 |---------|-----------|--------------|
 | Core size | ~100 lines | ~600 lines |
 | Shared state | raw dict | typed `Store` with schema |
@@ -371,7 +371,7 @@ docs/
 | Long-running | none | `run_background()` → `RunHandle` |
 | Retry | none | `max_retries` + `retry_delay` on any Node |
 | Wildcard edges | none | `.then("*", fallback)` |
-| Logging | manual | dd-logging (`picoflow.*` namespace) |
+| Logging | manual | dd-logging (`pocoflow.*` namespace) |
 | Monitor UI | none | Streamlit monitor with auto-refresh |
 | External deps | 0 | pocketflow + dd-logging (both stdlib-only) |
 
@@ -379,7 +379,7 @@ docs/
 
 ## Relationship to PocketFlow
 
-PicoFlow is spiritually a child of PocketFlow. We kept:
+PocoFlow is spiritually a child of PocketFlow. We kept:
 - The `prep | exec | post` nano-ETL abstraction — beautiful and correct
 - Zero vendor lock-in — bring your own LLM client
 - No framework magic — every behaviour is traceable to code you can read in minutes

@@ -1,10 +1,10 @@
-"""PicoFlow — minimal hello-world example.
+"""PocoFlow — minimal hello-world example.
 
 Run:
     python examples/hello.py
 """
 
-from picoflow import Node, Flow, Store
+from pocoflow import Node, Flow, Store
 
 
 class GreetNode(Node):
@@ -37,11 +37,11 @@ if __name__ == "__main__":
     greet.then("done", shout)
 
     store = Store(
-        data={"name": "PicoFlow", 
+        data={"name": "PocoFlow", 
               "greeting": "", 
               "shouted": "",
               "url": {
-                    "picoflow": "https://github.com/digital-duck/picoflow",
+                    "pocoflow": "https://github.com/digital-duck/pocoflow",
                     "pocketflow": "https://github.com/The-Pocket/PocketFlow",
               }
         },
@@ -58,5 +58,5 @@ if __name__ == "__main__":
     print(f"greeting : {store['greeting']}")
     print(f"shouted  : {store['shouted']}")
     print(f"What is {store['name']}?\n Where do you live?")
-    print(f"""I live at {store['url']['picoflow']}, \n\ta decendant of {store['url']['pocketflow']}. """)    
+    print(f"""I live at {store['url']['pocoflow']}, \n\ta decendant of {store['url']['pocketflow']}. """)    
     print("See you there!")

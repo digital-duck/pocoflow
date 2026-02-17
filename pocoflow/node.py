@@ -1,4 +1,4 @@
-"""PicoFlow Node — the nano-ETL unit of every pipeline step.
+"""PocoFlow Node — the nano-ETL unit of every pipeline step.
 
 Fixes PocketFlow weakness #2 (edge API) and #3 (async).
 
@@ -39,7 +39,7 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any
 
-from picoflow.logging import get_logger
+from pocoflow.logging import get_logger
 
 _log = get_logger("node")
 
@@ -48,7 +48,7 @@ WILDCARD_ACTION = "*"
 
 
 class Node(ABC):
-    """Base class for all synchronous PicoFlow nodes.
+    """Base class for all synchronous PocoFlow nodes.
 
     Subclass and implement at minimum exec().
 

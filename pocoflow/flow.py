@@ -1,4 +1,4 @@
-"""PicoFlow Flow — directed graph runner with hooks, checkpointing, and observability.
+"""PocoFlow Flow — directed graph runner with hooks, checkpointing, and observability.
 
 Fixes PocketFlow weaknesses #4 (no observability) and #5 (no checkpointing).
 
@@ -29,7 +29,7 @@ JSON checkpoints (backward-compatible):
 
 SQLite checkpoints (queryable, concurrent-safe):
 
-    flow = Flow(start=node, db_path="picoflow.db", flow_name="my_pipeline")
+    flow = Flow(start=node, db_path="pocoflow.db", flow_name="my_pipeline")
 
 Both can be enabled simultaneously.
 
@@ -51,8 +51,8 @@ Resume after crash
     flow.run(store, resume_from=execute_node)
 
     # or from SQLite checkpoint:
-    from picoflow.db import WorkflowDB
-    db = WorkflowDB("picoflow.db")
+    from pocoflow.db import WorkflowDB
+    db = WorkflowDB("pocoflow.db")
     store = db.load_checkpoint(run_id, step=3)
     flow.run(store, resume_from=execute_node)
 """
@@ -66,9 +66,9 @@ from pathlib import Path
 from typing import Any, Callable
 from uuid import uuid4
 
-from picoflow.logging import get_logger
-from picoflow.node import Node
-from picoflow.store import Store
+from pocoflow.logging import get_logger
+from pocoflow.node import Node
+from pocoflow.store import Store
 
 _log = get_logger("flow")
 
@@ -105,7 +105,7 @@ class Flow:
     Example
     -------
     >>> store = Store({"user_input": "hello"})
-    >>> flow = Flow(start=my_node, db_path="picoflow.db", flow_name="demo")
+    >>> flow = Flow(start=my_node, db_path="pocoflow.db", flow_name="demo")
     >>> flow.on("node_end", lambda name, action, elapsed, s: print(f"{name} → {action}"))
     >>> flow.run(store)
 
@@ -183,7 +183,7 @@ class Flow:
         db = None
         run_id: str | None = None
         if self.db_path:
-            from picoflow.db import WorkflowDB
+            from pocoflow.db import WorkflowDB
             db = WorkflowDB(self.db_path)
             run_id = self.run_id or f"{self.flow_name}-{uuid4().hex[:8]}"
             self._run_id = run_id
@@ -307,7 +307,7 @@ class Flow:
         >>> result = handle.wait(timeout=120)
         >>> print(handle.status)   # "completed"
         """
-        from picoflow.runner import RunHandle
+        from pocoflow.runner import RunHandle
 
         if isinstance(store, dict):
             store = Store(data=store)
@@ -332,12 +332,12 @@ class Flow:
             finally:
                 done_event.set()
 
-        thread = threading.Thread(target=_target, daemon=True, name=f"picoflow-{run_id}")
+        thread = threading.Thread(target=_target, daemon=True, name=f"pocoflow-{run_id}")
         thread.start()
 
         db = None
         if self.db_path:
-            from picoflow.db import WorkflowDB
+            from pocoflow.db import WorkflowDB
             db = WorkflowDB(self.db_path)
 
         _log.info("Flow '%s' started in background  run_id=%s", self.flow_name, run_id)

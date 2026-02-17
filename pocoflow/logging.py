@@ -1,24 +1,24 @@
-"""PicoFlow logging — thin wrapper around dd-logging for consistent log format.
+"""PocoFlow logging — thin wrapper around dd-logging for consistent log format.
 
 Usage
 -----
-In every picoflow module:
-    from picoflow.logging import get_logger
-    _log = get_logger("node")   # → picoflow.node logger
+In every pocoflow module:
+    from pocoflow.logging import get_logger
+    _log = get_logger("node")   # → pocoflow.node logger
 
 To initialise file logging at application start-up:
-    from picoflow.logging import setup_logging
+    from pocoflow.logging import setup_logging
     setup_logging("my_run", log_level="debug")
-    # → logs/my_run-<YYYYMMDD-HHMMSS>.log under picoflow.*
+    # → logs/my_run-<YYYYMMDD-HHMMSS>.log under pocoflow.*
 
 Log hierarchy
 -------------
-    picoflow              ← root (FileHandler attached by setup_logging)
-    ├── picoflow.store
-    ├── picoflow.node
-    ├── picoflow.flow
-    ├── picoflow.db
-    └── picoflow.runner
+    pocoflow              ← root (FileHandler attached by setup_logging)
+    ├── pocoflow.store
+    ├── pocoflow.node
+    ├── pocoflow.flow
+    ├── pocoflow.db
+    └── pocoflow.runner
 """
 
 from __future__ import annotations
@@ -32,29 +32,29 @@ from dd_logging import (
     setup_logging as _setup,
 )
 
-_ROOT = "picoflow"
+_ROOT = "pocoflow"
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Return a child logger under the picoflow namespace.
+    """Return a child logger under the pocoflow namespace.
 
     Parameters
     ----------
     name :
-        Dotted sub-path, e.g. ``"node"`` → ``picoflow.node``.
+        Dotted sub-path, e.g. ``"node"`` → ``pocoflow.node``.
     """
     return _get(name, _ROOT)
 
 
 def setup_logging(
-    run_name: str = "picoflow",
+    run_name: str = "pocoflow",
     *,
     log_level: str = "info",
     log_dir: str | Path | None = None,
     console: bool = False,
     adapter: str = "",
 ) -> Path:
-    """Attach a timestamped FileHandler to the picoflow root logger.
+    """Attach a timestamped FileHandler to the pocoflow root logger.
 
     Parameters
     ----------
@@ -85,5 +85,5 @@ def setup_logging(
 
 
 def disable_logging() -> None:
-    """Remove all handlers from the picoflow root logger (silent mode)."""
+    """Remove all handlers from the pocoflow root logger (silent mode)."""
     _disable(_ROOT)

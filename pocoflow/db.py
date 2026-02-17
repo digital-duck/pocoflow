@@ -1,4 +1,4 @@
-"""PicoFlow DB — SQLite backend for workflow runs, checkpoints, and events.
+"""PocoFlow DB — SQLite backend for workflow runs, checkpoints, and events.
 
 Schema
 ------
@@ -15,9 +15,9 @@ WAL mode is enabled on first connection so UI polling doesn't block writes.
 
 Usage
 -----
-    from picoflow.db import WorkflowDB
+    from pocoflow.db import WorkflowDB
 
-    db = WorkflowDB("picoflow.db")
+    db = WorkflowDB("pocoflow.db")
     db.create_run("run-abc", flow_name="my_pipeline")
     db.save_event("run-abc", "flow_start", node_name="StepA", ts=now())
     # ... after each node ...
@@ -36,8 +36,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from picoflow.logging import get_logger
-from picoflow.store import Store
+from pocoflow.logging import get_logger
+from pocoflow.store import Store
 
 _log = get_logger("db")
 
@@ -87,7 +87,7 @@ def _now() -> str:
 
 
 class WorkflowDB:
-    """SQLite-backed store for PicoFlow workflow observability.
+    """SQLite-backed store for PocoFlow workflow observability.
 
     Parameters
     ----------

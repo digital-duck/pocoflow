@@ -1,4 +1,4 @@
-"""PicoFlow smoke tests — no external dependencies required."""
+"""PocoFlow smoke tests — no external dependencies required."""
 
 import asyncio
 import tempfile
@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from picoflow import AsyncNode, Flow, Node, Store
+from pocoflow import AsyncNode, Flow, Node, Store
 
 
 # ── Store ─────────────────────────────────────────────────────────────────────
@@ -214,7 +214,7 @@ def test_async_gather():
 
 # ── WorkflowDB ────────────────────────────────────────────────────────────────
 
-from picoflow.db import WorkflowDB
+from pocoflow.db import WorkflowDB
 
 
 def test_db_create_and_list_runs(tmp_path):
@@ -298,7 +298,7 @@ def test_flow_with_db(tmp_path):
 # ── Background runner ─────────────────────────────────────────────────────────
 
 import time as _time
-from picoflow.runner import RunHandle
+from pocoflow.runner import RunHandle
 
 
 class _SlowNode(Node):

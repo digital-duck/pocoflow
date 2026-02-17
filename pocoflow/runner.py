@@ -1,8 +1,8 @@
-"""PicoFlow Runner — background thread execution and run handle.
+"""PocoFlow Runner — background thread execution and run handle.
 
 Usage
 -----
-    flow = Flow(start=my_node, db_path="picoflow.db", flow_name="my_pipeline")
+    flow = Flow(start=my_node, db_path="pocoflow.db", flow_name="my_pipeline")
     handle = flow.run_background(store)
 
     # returns immediately; flow runs in a daemon thread
@@ -22,10 +22,10 @@ import threading
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from picoflow.db import WorkflowDB
-    from picoflow.store import Store
+    from pocoflow.db import WorkflowDB
+    from pocoflow.store import Store
 
-from picoflow.logging import get_logger
+from pocoflow.logging import get_logger
 
 _log = get_logger("runner")
 

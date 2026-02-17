@@ -1,4 +1,4 @@
-"""PicoFlow Store — typed, observable, checkpointable shared state.
+"""PocoFlow Store — typed, observable, checkpointable shared state.
 
 Fixes PocketFlow weakness #1: raw dict with no type safety or schema.
 
@@ -21,13 +21,13 @@ import json
 from pathlib import Path
 from typing import Any, Callable
 
-from picoflow.logging import get_logger
+from pocoflow.logging import get_logger
 
 _log = get_logger("store")
 
 
 class Store:
-    """Shared state container for a PicoFlow pipeline run.
+    """Shared state container for a PocoFlow pipeline run.
 
     Parameters
     ----------
