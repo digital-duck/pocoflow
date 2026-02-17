@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "picoflow"
+version = "0.1.0"
+description = "Lightweight LLM workflow orchestration — a hardened evolution of PocketFlow"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "digital-duck", email = "digital-duck@users.noreply.github.com" },
+]
+keywords = ["llm", "workflow", "orchestration", "agent", "pipeline", "etl"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pocketflow>=0.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.urls]
+Homepage = "https://github.com/digital-duck/picoflow"
+Repository = "https://github.com/digital-duck/picoflow"
+"Bug Tracker" = "https://github.com/digital-duck/picoflow/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["picoflow*"]
