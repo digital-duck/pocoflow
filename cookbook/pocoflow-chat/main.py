@@ -10,6 +10,9 @@ from utils import call_llm
 
 
 class ChatNode(Node):
+    max_retries = 3
+    retry_delay = 2.0
+
     def prep(self, store):
         # First run: print welcome banner
         if not store["messages"]:
