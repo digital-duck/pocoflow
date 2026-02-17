@@ -35,12 +35,13 @@ The node is NOT re-run from prep() — only exec() is retried.
 from __future__ import annotations
 
 import asyncio
-import logging
 import time
 from abc import ABC, abstractmethod
 from typing import Any
 
-_log = logging.getLogger("picoflow.node")
+from picoflow.logging import get_logger
+
+_log = get_logger("node")
 
 DEFAULT_ACTION = "default"
 WILDCARD_ACTION = "*"

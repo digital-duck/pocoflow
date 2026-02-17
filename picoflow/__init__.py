@@ -12,9 +12,11 @@ Public API
 from picoflow import Node, AsyncNode, Store, Flow
 """
 
-from picoflow.store import Store
-from picoflow.node  import Node, AsyncNode
-from picoflow.flow  import Flow
+from picoflow.store  import Store
+from picoflow.node   import Node, AsyncNode
+from picoflow.flow   import Flow
+from picoflow.db     import WorkflowDB
+from picoflow.runner import RunHandle
 
-__all__ = ["Store", "Node", "AsyncNode", "Flow"]
-__version__ = "0.1.0"
+__all__ = ["Store", "Node", "AsyncNode", "Flow", "WorkflowDB", "RunHandle"]
+__version__ = "0.2.0"

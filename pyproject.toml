@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "picoflow"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lightweight LLM workflow orchestration — a hardened evolution of PocketFlow"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -25,9 +25,14 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "pocketflow>=0.0.1",
+    "dd-logging>=0.1.0",
 ]
 
 [project.optional-dependencies]
+ui = [
+    "streamlit>=1.32",
+    "pandas>=1.5",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",

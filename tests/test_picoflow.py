@@ -210,3 +210,131 @@ def test_async_gather():
     store = Store({"results": []})
     Flow(start=GatherNode()).run(store)
     assert store["results"] == [2, 4, 6]
+
+
+# ── WorkflowDB ────────────────────────────────────────────────────────────────
+
+from picoflow.db import WorkflowDB
+
+
+def test_db_create_and_list_runs(tmp_path):
+    db = WorkflowDB(tmp_path / "test.db")
+    db.create_run("r1", "my_flow")
+    runs = db.list_runs()
+    assert len(runs) == 1
+    assert runs[0]["run_id"] == "r1"
+    assert runs[0]["flow_name"] == "my_flow"
+    assert runs[0]["status"] == "running"
+
+
+def test_db_update_run(tmp_path):
+    db = WorkflowDB(tmp_path / "test.db")
+    db.create_run("r1")
+    db.update_run("r1", status="completed", total_steps=3)
+    run = db.get_run("r1")
+    assert run["status"] == "completed"
+    assert run["total_steps"] == 3
+
+
+def test_db_save_and_load_checkpoint(tmp_path):
+    db = WorkflowDB(tmp_path / "test.db")
+    db.create_run("r1")
+    store = Store({"x": 42, "msg": "hello"})
+    db.save_checkpoint("r1", step=0, node_name="MyNode", store=store)
+    checkpoints = db.get_checkpoints("r1")
+    assert len(checkpoints) == 1
+    restored = db.load_checkpoint("r1", step=0)
+    assert restored["x"] == 42
+    assert restored["msg"] == "hello"
+
+
+def test_db_load_checkpoint_missing(tmp_path):
+    db = WorkflowDB(tmp_path / "test.db")
+    db.create_run("r1")
+    with pytest.raises(KeyError):
+        db.load_checkpoint("r1", step=99)
+
+
+def test_db_events(tmp_path):
+    db = WorkflowDB(tmp_path / "test.db")
+    db.create_run("r1")
+    db.save_event("r1", "flow_start", node_name="A")
+    db.save_event("r1", "node_end", step=0, node_name="A", action="done", elapsed_ms=42.0)
+    db.save_event("r1", "flow_end", step=1)
+    events = db.get_events("r1")
+    assert len(events) == 3
+    assert events[0]["event"] == "flow_start"
+    assert events[1]["elapsed_ms"] == 42.0
+    assert events[2]["event"] == "flow_end"
+
+
+def test_flow_with_db(tmp_path):
+    db_path = tmp_path / "flow.db"
+    store = Store({"value": 5})
+    flow = Flow(start=_AddNode(), db_path=db_path, flow_name="test_flow")
+    flow.run(store)
+
+    db = WorkflowDB(db_path)
+    runs = db.list_runs()
+    assert len(runs) == 1
+    assert runs[0]["status"] == "completed"
+    assert runs[0]["flow_name"] == "test_flow"
+    assert runs[0]["total_steps"] == 1
+
+    # Checkpoint was saved
+    ckpts = db.get_checkpoints(runs[0]["run_id"])
+    assert len(ckpts) == 1
+    restored = db.load_checkpoint(runs[0]["run_id"], step=0)
+    assert restored["value"] == 15
+
+    # Events were recorded
+    events = db.get_events(runs[0]["run_id"])
+    event_names = [e["event"] for e in events]
+    assert "flow_start" in event_names
+    assert "node_end" in event_names
+    assert "flow_end" in event_names
+
+
+# ── Background runner ─────────────────────────────────────────────────────────
+
+import time as _time
+from picoflow.runner import RunHandle
+
+
+class _SlowNode(Node):
+    def exec(self, prep):
+        _time.sleep(0.1)
+        return "done"
+
+    def post(self, store, prep, result):
+        store["done"] = True
+        return "done"
+
+
+def test_background_runner_completes(tmp_path):
+    flow = Flow(start=_SlowNode(), db_path=tmp_path / "bg.db", flow_name="bg_test")
+    handle = flow.run_background(Store({"done": False}))
+
+    assert isinstance(handle, RunHandle)
+    result = handle.wait(timeout=5)
+    assert result["done"] is True
+    assert handle.status == "completed"
+
+
+def test_background_runner_timeout(tmp_path):
+    class _VerySlowNode(Node):
+        def exec(self, prep): _time.sleep(10); return "done"
+
+    flow = Flow(start=_VerySlowNode())
+    handle = flow.run_background(Store({}))
+    with pytest.raises(TimeoutError):
+        handle.wait(timeout=0.05)
+
+
+def test_background_runner_without_db():
+    """RunHandle.status works even without a database."""
+    flow = Flow(start=_SlowNode())
+    handle = flow.run_background(Store({"done": False}))
+    result = handle.wait(timeout=5)
+    assert result["done"] is True
+    assert handle.status in ("completed", "running")  # may be completed by now

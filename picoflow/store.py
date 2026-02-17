@@ -18,11 +18,12 @@ friction:  store["key"] = value  and  store["key"]  still work.
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 from typing import Any, Callable
 
-_log = logging.getLogger("picoflow.store")
+from picoflow.logging import get_logger
+
+_log = get_logger("store")
 
 
 class Store:
