@@ -37,7 +37,14 @@ if __name__ == "__main__":
     greet.then("done", shout)
 
     store = Store(
-        data={"name": "PicoFlow", "greeting": "", "shouted": ""},
+        data={"name": "PicoFlow", 
+              "greeting": "", 
+              "shouted": "",
+              "url": {
+                    "picoflow": "https://github.com/digital-duck/picoflow",
+                    "pocketflow": "https://github.com/The-Pocket/PocketFlow",
+              }
+        },
         schema={"name": str},
         name="hello_demo",
     )
@@ -50,3 +57,6 @@ if __name__ == "__main__":
     flow.run(store)
     print(f"greeting : {store['greeting']}")
     print(f"shouted  : {store['shouted']}")
+    print(f"What is {store['name']}?\n Where do you live?")
+    print(f"""I live at {store['url']['picoflow']}, \n\ta decendant of {store['url']['pocketflow']}. """)    
+    print("See you there!")
