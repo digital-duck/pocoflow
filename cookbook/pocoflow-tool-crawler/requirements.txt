@@ -1,0 +1,6 @@
+pocoflow>=0.2.0
+python-dotenv>=1.0
+click>=8.0
+pyyaml>=6.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
