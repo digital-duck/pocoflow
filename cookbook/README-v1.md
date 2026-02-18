@@ -24,29 +24,29 @@ Ported from [PocketFlow cookbook](https://github.com/The-Pocket/PocketFlow/tree/
 | 16 | pocoflow-parallel-batch | Parallel batch processing | 3 - Patterns | Done |
 | 17 | pocoflow-parallel-batch-flow | Parallel batch over flows | 3 - Patterns | Done |
 | 18 | pocoflow-nested-batch | Nested batch processing | 3 - Patterns | Done |
-| 19 | pocoflow-majority-vote | Consensus via majority vote | 3 - Patterns | Pending |
-| 20 | pocoflow-communication | Inter-node communication | 3 - Patterns | Pending |
+| 19 | pocoflow-majority-vote | Consensus via majority vote | 3 - Patterns | Done |
+| 20 | pocoflow-communication | Inter-node communication | 3 - Patterns | Done |
 | 21 | pocoflow-rag | Retrieval-augmented generation | 4 - LLM Apps | Done |
-| 22 | pocoflow-structured-output | Structured LLM output | 4 - LLM Apps | Pending |
+| 22 | pocoflow-structured-output-v2 | Structured LLM output (resume parser) | 4 - LLM Apps | Done |
 | 23 | pocoflow-thinking | Chain-of-thought reasoning | 4 - LLM Apps | Done |
 | 24 | pocoflow-code-generator | Code generation pipeline | 4 - LLM Apps | Done |
 | 25 | pocoflow-text2sql | Natural language to SQL | 4 - LLM Apps | Done |
 | 26 | pocoflow-llm-streaming | LLM streaming responses | 4 - LLM Apps | Done |
 | 27 | pocoflow-hello-world | Minimal hello world | 4 - LLM Apps | Done |
-| 28 | pocoflow-tao | Tao philosophy example | 4 - LLM Apps | Pending |
-| 29 | pocoflow-cli-hitl | CLI human-in-the-loop | 5 - Integration | Pending |
-| 30 | pocoflow-fastapi-background | FastAPI + background flow | 5 - Integration | Pending |
-| 31 | pocoflow-fastapi-hitl | FastAPI human-in-the-loop | 5 - Integration | Pending |
-| 32 | pocoflow-fastapi-websocket | FastAPI + WebSocket | 5 - Integration | Pending |
+| 28 | pocoflow-tao | Tao philosophy example | 4 - LLM Apps | Done |
+| 29 | pocoflow-cli-hitl | CLI human-in-the-loop | 5 - Integration | Done |
+| 30 | pocoflow-fastapi-background | FastAPI + background flow | 5 - Integration | Done |
+| 31 | pocoflow-fastapi-hitl | FastAPI human-in-the-loop | 5 - Integration | Done |
+| 32 | pocoflow-fastapi-websocket | FastAPI + WebSocket | 5 - Integration | Done |
 | 33 | pocoflow-gradio-hitl | Gradio human-in-the-loop | 5 - Integration | Pending |
 | 34 | pocoflow-streamlit-fsm | Streamlit finite state machine | 5 - Integration | Pending |
 | 35 | pocoflow-visualization | Flow visualization | 5 - Integration | Done |
 | 36 | pocoflow-tracing | Execution tracing | 5 - Integration | Done |
-| 37 | pocoflow-mcp | Model Context Protocol | 6 - Advanced | Pending |
-| 38 | pocoflow-a2a | Agent-to-agent | 6 - Advanced | Pending |
-| 39 | pocoflow-multi-agent | Multi-agent orchestration | 6 - Advanced | Pending |
+| 37 | pocoflow-mcp | Model Context Protocol | 6 - Advanced | Done |
+| 38 | pocoflow-a2a | Agent-to-agent | 6 - Advanced | Done |
+| 39 | pocoflow-multi-agent | Multi-agent orchestration | 6 - Advanced | Done |
 | 40 | pocoflow-tool-crawler | Web crawler tool | 6 - Advanced | Done |
-| 41 | pocoflow-tool-database | Database tool | 6 - Advanced | Pending |
+| 41 | pocoflow-tool-database | Database tool | 6 - Advanced | Done |
 | 42 | pocoflow-tool-embeddings | Embeddings tool | 6 - Advanced | Done |
 | 43 | pocoflow-tool-pdf-vision | PDF + vision tool | 6 - Advanced | Done |
 | 44 | pocoflow-tool-search | Search tool | 6 - Advanced | Done |

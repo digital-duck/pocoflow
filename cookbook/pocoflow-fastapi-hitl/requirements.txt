@@ -1,0 +1,5 @@
+pocoflow>=0.2.0
+python-dotenv>=1.0
+click>=8.0
+fastapi>=0.100
+uvicorn>=0.23
