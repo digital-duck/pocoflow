@@ -52,3 +52,39 @@ Ported from [PocketFlow cookbook](https://github.com/The-Pocket/PocketFlow/tree/
 | 44 | pocoflow-tool-search | Search tool | 6 - Advanced | Done |
 | 45 | pocoflow-google-calendar | Google Calendar integration | 6 - Advanced | Done |
 | 46 | pocoflow-voice-chat | Voice chat | 6 - Advanced | Done |
+
+
+
+<pre>  <b>12 cookbook examples ported</b> — all following the pocoflow-chat pattern with Click CLI, <font color="#B1B9F9">--provider</font> and <font color="#B1B9F9">--model</font> flags:                         
+                                                                                                                                              
+  ┌─────┬───────────────────────────────┬───────────────────────────────────────────────────────────┐                                         
+  │  #  │            Example            │                        Key Pattern                        │                                         
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤                                         
+  │ 19  │ pocoflow-majority-vote        │ BatchNode pattern (loop in exec), YAML parsing, consensus │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 20  │ pocoflow-communication        │ Inter-node data passing via Store, no LLM                 │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 22  │ pocoflow-structured-output-v2 │ Resume parser with YAML extraction + validation           │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 28  │ pocoflow-tao                  │ Think-Action-Observe reasoning loop                       │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 29  │ pocoflow-cli-hitl             │ Human approves/rejects jokes interactively                │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 30  │ pocoflow-fastapi-background   │ SSE progress streaming + background task                  │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 31  │ pocoflow-fastapi-hitl         │ AsyncNode waits for human feedback via API                │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 32  │ pocoflow-fastapi-websocket    │ WebSocket chat with conversation history                  │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 37  │ pocoflow-mcp                  │ LLM discovers and calls math tools                        │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 38  │ pocoflow-a2a                  │ Research agent with search/answer decision loop           │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 39  │ pocoflow-multi-agent          │ Taboo game with hinter + guesser agents                   │
+  ├─────┼───────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ 41  │ pocoflow-tool-database        │ SQLite CRUD operations pipeline                           │
+  └─────┴───────────────────────────────┴───────────────────────────────────────────────────────────┘
+
+  Note: #22 was renamed to <font color="#B1B9F9">pocoflow-structured-output-v2</font> since #6 already occupies the original name. All 25 framework tests still pass.
+  README-v1.md updated with &quot;Done&quot; status for all 12.
+</pre>
