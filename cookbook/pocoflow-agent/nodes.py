@@ -3,7 +3,15 @@
 import re
 import yaml
 from pocoflow import Node
-from utils import call_llm, search_web
+from utils import search_web
+
+
+def _llm_call(llm, model, prompt):
+    """Helper: call LLM and return content or raise on failure."""
+    response = llm.call(prompt, model=model)
+    if not response.success:
+        raise RuntimeError(f"LLM failed: {response.error_history}")
+    return response.content
 
 
 class DecideAction(Node):
@@ -13,10 +21,10 @@ class DecideAction(Node):
     def prep(self, store):
         context = store.get("context") or "No previous search"
         question = store["question"]
-        return question, context
+        return question, context, store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
-        question, context = prep_result
+        question, context, llm, model = prep_result
 
         print("Agent deciding what to do next...")
 
@@ -54,7 +62,7 @@ search_query: <specific search query if action is search>
 IMPORTANT: Use the | block scalar for thinking, reason and answer fields.
 Keep search_query as a single line string.
 """
-        response = call_llm(prompt)
+        response = _llm_call(llm, model, prompt)
 
         # Extract YAML block
         match = re.search(r"```yaml(.*?)```", response, re.DOTALL | re.IGNORECASE)
@@ -89,10 +97,10 @@ class SearchWeb(Node):
 
 class AnswerQuestion(Node):
     def prep(self, store):
-        return store["question"], store.get("context") or ""
+        return store["question"], store.get("context") or "", store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
-        question, context = prep_result
+        question, context, llm, model = prep_result
         print("Crafting final answer...")
         prompt = f"""
 ### CONTEXT
@@ -103,7 +111,7 @@ Research: {context}
 ## YOUR ANSWER:
 Provide a comprehensive answer using the research results.
 """
-        return call_llm(prompt)
+        return _llm_call(llm, model, prompt)
 
     def post(self, store, prep_result, exec_result):
         store["answer"] = exec_result

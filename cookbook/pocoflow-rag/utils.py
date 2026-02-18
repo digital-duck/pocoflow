@@ -1,30 +1,22 @@
-"""Utility: Anthropic Claude + OpenAI embeddings + FAISS helpers."""
+"""Utility: OpenAI embeddings + FAISS helpers."""
 
 import os
 import numpy as np
 from pathlib import Path
-from dotenv import load_dotenv
-from anthropic import Anthropic
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+except ImportError:
+    pass
+
 from openai import OpenAI
 
-load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
-
-anthropic_client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-MODEL = "claude-sonnet-4-5-20250929"
-
-
-def call_llm(prompt: str) -> str:
-    response = anthropic_client.messages.create(
-        model=MODEL,
-        max_tokens=512,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.content[0].text
+_openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
 def get_embedding(text: str) -> list[float]:
-    response = openai_client.embeddings.create(
+    response = _openai_client.embeddings.create(
         model="text-embedding-3-small",
         input=text,
     )
@@ -46,8 +38,6 @@ def search_vectors(index, query: np.ndarray, k: int = 3):
 
 
 if __name__ == "__main__":
-    print("Testing call_llm...")
-    print(call_llm("What is RAG in AI?"))
-    print("\nTesting get_embedding...")
+    print("Testing get_embedding...")
     emb = get_embedding("test embedding")
     print(f"Embedding dimension: {len(emb)}")

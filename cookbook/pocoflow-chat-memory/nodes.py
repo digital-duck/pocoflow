@@ -1,7 +1,6 @@
 """Chat memory nodes: question, retrieve, answer, embed."""
 
 from pocoflow import Node
-from utils.call_llm import call_llm
 from utils.get_embedding import get_embedding
 from utils.vector_store import create_index, add_vector, search_vectors
 
@@ -92,10 +91,14 @@ class AnswerNode(Node):
             messages.insert(-1, system_note)
             messages.insert(-1, {"role": "assistant", "content": "Got it, I'll keep that in mind."})
 
-        return messages
+        return messages, store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
-        return call_llm(prep_result)
+        messages, llm, model = prep_result
+        response = llm.call(messages=messages, model=model)
+        if not response.success:
+            raise RuntimeError(f"LLM failed: {response.error_history}")
+        return response.content
 
     def post(self, store, prep_result, exec_result):
         print(f"\nAssistant: {exec_result}")

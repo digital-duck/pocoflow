@@ -14,25 +14,25 @@ Ported from [PocketFlow cookbook](https://github.com/The-Pocket/PocketFlow/tree/
 | 6 | pocoflow-structured-output | LLM + JSON parsing, retry on bad output | 1 - Core | Done - OK |
 | 7 | pocoflow-chat-memory | Chat + conversation persistence | 1 - Core | Done - OK |
 | 8 | pocoflow-chat-guardrail | Input/output guardrails | 2 - Safety | Pending |
-| 9 | pocoflow-agent | Tool-calling agent loop | 2 - Safety | Pending |
+| 9 | pocoflow-agent | Tool-calling agent loop | 2 - Safety | Done |
 | 10 | pocoflow-agent-skills | Agent with multiple skills | 2 - Safety | Pending |
-| 11 | pocoflow-supervisor | Multi-agent supervisor | 2 - Safety | Pending |
-| 12 | pocoflow-workflow | Multi-step workflow | 3 - Patterns | Pending |
-| 13 | pocoflow-batch-flow | Batch over flows | 3 - Patterns | Pending |
-| 14 | pocoflow-batch-node | Batch over nodes | 3 - Patterns | Pending |
+| 11 | pocoflow-supervisor | Multi-agent supervisor | 2 - Safety | Done |
+| 12 | pocoflow-workflow | Multi-step workflow | 3 - Patterns | Done |
+| 13 | pocoflow-batch-flow | Batch over flows | 3 - Patterns | Done |
+| 14 | pocoflow-batch-node | Batch over nodes | 3 - Patterns | Done |
 | 15 | pocoflow-map-reduce | Map-reduce pattern | 3 - Patterns | Pending |
-| 16 | pocoflow-parallel-batch | Parallel batch processing | 3 - Patterns | Pending |
-| 17 | pocoflow-parallel-batch-flow | Parallel batch over flows | 3 - Patterns | Pending |
-| 18 | pocoflow-nested-batch | Nested batch processing | 3 - Patterns | Pending |
+| 16 | pocoflow-parallel-batch | Parallel batch processing | 3 - Patterns | Done |
+| 17 | pocoflow-parallel-batch-flow | Parallel batch over flows | 3 - Patterns | Done |
+| 18 | pocoflow-nested-batch | Nested batch processing | 3 - Patterns | Done |
 | 19 | pocoflow-majority-vote | Consensus via majority vote | 3 - Patterns | Pending |
 | 20 | pocoflow-communication | Inter-node communication | 3 - Patterns | Pending |
-| 21 | pocoflow-rag | Retrieval-augmented generation | 4 - LLM Apps | Pending |
+| 21 | pocoflow-rag | Retrieval-augmented generation | 4 - LLM Apps | Done |
 | 22 | pocoflow-structured-output | Structured LLM output | 4 - LLM Apps | Pending |
 | 23 | pocoflow-thinking | Chain-of-thought reasoning | 4 - LLM Apps | Pending |
-| 24 | pocoflow-code-generator | Code generation pipeline | 4 - LLM Apps | Pending |
+| 24 | pocoflow-code-generator | Code generation pipeline | 4 - LLM Apps | Done |
 | 25 | pocoflow-text2sql | Natural language to SQL | 4 - LLM Apps | Pending |
 | 26 | pocoflow-llm-streaming | LLM streaming responses | 4 - LLM Apps | Pending |
-| 27 | pocoflow-hello-world | Minimal hello world | 4 - LLM Apps | Pending |
+| 27 | pocoflow-hello-world | Minimal hello world | 4 - LLM Apps | Done |
 | 28 | pocoflow-tao | Tao philosophy example | 4 - LLM Apps | Pending |
 | 29 | pocoflow-cli-hitl | CLI human-in-the-loop | 5 - Integration | Pending |
 | 30 | pocoflow-fastapi-background | FastAPI + background flow | 5 - Integration | Pending |

@@ -3,11 +3,19 @@
 Demonstrates: 4-node flow, embeddings, FAISS vector search, conversation archival.
 """
 
+import click
 from pocoflow import Flow, Store
+from pocoflow.utils import UniversalLLMProvider
 from nodes import GetUserQuestionNode, RetrieveNode, AnswerNode, EmbedNode
 
 
-def main():
+@click.command()
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(provider, model):
+    """Chat with sliding-window memory and vector retrieval."""
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
+
     question = GetUserQuestionNode()
     retrieve = RetrieveNode()
     answer = AnswerNode()
@@ -18,9 +26,11 @@ def main():
     answer.then("question", question)
     answer.then("embed", embed)
     embed.then("question", question)
-    # "exit" has no successor → flow ends
 
-    store = Store(data={"messages": []}, name="chat_memory")
+    store = Store(
+        data={"messages": [], "_llm": llm, "_model": model},
+        name="chat_memory",
+    )
 
     print("=" * 50)
     print("PocoFlow Chat with Memory")

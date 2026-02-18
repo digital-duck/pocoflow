@@ -8,15 +8,22 @@ A supervised research agent that validates answers and retries on bad output.
 - **Supervisor pattern**: validates LLM output before accepting
 - **Unreliable node**: 50% chance of dummy answer (demonstrates need for supervision)
 - **Flattened design**: original PocketFlow uses Flow-as-Node nesting; PocoFlow flattens to single flow
+- **Multi-provider**: works with any supported LLM provider
 
 ## Run It
 
 ```bash
-export ANTHROPIC_API_KEY="your-key"
 pip install -r requirements.txt
-python main.py
-# or with a custom question:
-python main.py --"What is quantum computing?"
+
+# Anthropic (default)
+export ANTHROPIC_API_KEY="your-key"
+python main.py "What is quantum computing?"
+
+# Ollama (local)
+python main.py --provider ollama --model llama3.2 "What is quantum computing?"
+
+# See all options
+python main.py --help
 ```
 
 ## How It Works
@@ -33,6 +40,6 @@ flowchart LR
 
 ## Files
 
-- `main.py` — flow wiring and entry point
+- `main.py` — flow wiring and CLI entry point
 - `nodes.py` — 4 node implementations
-- `utils.py` — Anthropic Claude + DuckDuckGo wrappers
+- `utils.py` — DuckDuckGo search wrapper

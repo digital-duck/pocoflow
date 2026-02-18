@@ -4,7 +4,9 @@ Demonstrates: two-phase flow (offline indexing + online query), FAISS vector sea
 Original PocketFlow uses BatchNode for chunking/embedding; PocoFlow loops in exec().
 """
 
+import click
 from pocoflow import Flow, Store
+from pocoflow.utils import UniversalLLMProvider
 from nodes import ChunkDocuments, EmbedAndIndex, EmbedQuery, RetrieveDocuments, GenerateAnswer
 
 
@@ -23,14 +25,21 @@ SAMPLE_TEXTS = [
 ]
 
 
-def run_offline_indexing():
+def run_offline_indexing(llm, model):
     """Phase 1: chunk documents and build FAISS index."""
     chunk = ChunkDocuments()
     embed = EmbedAndIndex()
     chunk.then("default", embed)
 
     store = Store(
-        data={"documents": SAMPLE_TEXTS, "chunks": [], "index": None, "chunk_texts": []},
+        data={
+            "documents": SAMPLE_TEXTS,
+            "chunks": [],
+            "index": None,
+            "chunk_texts": [],
+            "_llm": llm,
+            "_model": model,
+        },
         name="rag_offline",
     )
 
@@ -41,7 +50,7 @@ def run_offline_indexing():
     return store
 
 
-def run_online_query(offline_store):
+def run_online_query(offline_store, llm, model):
     """Phase 2: embed query, retrieve, generate answer."""
     embed_q = EmbedQuery()
     retrieve = RetrieveDocuments()
@@ -61,6 +70,8 @@ def run_online_query(offline_store):
             "chunk_texts": offline_store["chunk_texts"],
             "retrieved_chunks": [],
             "answer": "",
+            "_llm": llm,
+            "_model": model,
         },
         name="rag_online",
     )
@@ -72,9 +83,14 @@ def run_online_query(offline_store):
     print(f"\nAnswer: {store['answer']}")
 
 
-def main():
-    offline_store = run_offline_indexing()
-    run_online_query(offline_store)
+@click.command()
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(provider, model):
+    """Retrieval-augmented generation with FAISS vector search."""
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
+    offline_store = run_offline_indexing(llm, model)
+    run_online_query(offline_store, llm, model)
 
 
 if __name__ == "__main__":

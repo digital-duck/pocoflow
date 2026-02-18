@@ -3,17 +3,19 @@
 Demonstrates: multi-node agent loop, YAML structured output, DuckDuckGo search.
 """
 
-import sys
+import click
 from pocoflow import Flow, Store
+from pocoflow.utils import UniversalLLMProvider
 from nodes import DecideAction, SearchWeb, AnswerQuestion
 
 
-def main():
-    question = "Who won the Nobel Prize in Physics 2024?"
-    for arg in sys.argv[1:]:
-        if arg.startswith("--"):
-            question = arg[2:]
-            break
+@click.command()
+@click.argument("question", default="Who won the Nobel Prize in Physics 2024?")
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(question, provider, model):
+    """Research a question using web search and LLM reasoning."""
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
 
     decide = DecideAction()
     search = SearchWeb()
@@ -22,10 +24,15 @@ def main():
     decide.then("search", search)
     decide.then("answer", answer)
     search.then("decide", decide)
-    # "done" has no successor -> flow ends
 
     store = Store(
-        data={"question": question, "context": "", "answer": ""},
+        data={
+            "question": question,
+            "context": "",
+            "answer": "",
+            "_llm": llm,
+            "_model": model,
+        },
         name="research_agent",
     )
 

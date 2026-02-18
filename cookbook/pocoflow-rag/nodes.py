@@ -2,7 +2,7 @@
 
 import numpy as np
 from pocoflow import Node
-from utils import call_llm, get_embedding, create_index, add_vectors, search_vectors
+from utils import get_embedding, create_index, add_vectors, search_vectors
 
 
 class ChunkDocuments(Node):
@@ -98,10 +98,10 @@ class RetrieveDocuments(Node):
 class GenerateAnswer(Node):
     def prep(self, store):
         context = "\n".join(r["text"] for r in store["retrieved_chunks"])
-        return store["question"], context
+        return store["question"], context, store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
-        question, context = prep_result
+        question, context, llm, model = prep_result
         prompt = f"""Answer the question based on the provided context.
 
 Context:
@@ -110,7 +110,10 @@ Context:
 Question: {question}
 
 Answer concisely based only on the context provided."""
-        return call_llm(prompt)
+        response = llm.call(prompt, model=model)
+        if not response.success:
+            raise RuntimeError(f"LLM failed: {response.error_history}")
+        return response.content
 
     def post(self, store, prep_result, exec_result):
         store["answer"] = exec_result

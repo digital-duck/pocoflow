@@ -6,8 +6,9 @@ PocoFlow doesn't have a built-in BatchNode, so we loop inside exec().
 
 import os
 import time
+import click
 from pocoflow import Node, Flow, Store
-from utils import call_llm
+from pocoflow.utils import UniversalLLMProvider
 
 
 class TranslateNode(Node):
@@ -17,11 +18,14 @@ class TranslateNode(Node):
     def prep(self, store):
         text = store["text"]
         languages = store["languages"]
-        return [(text, lang) for lang in languages]
+        llm = store["_llm"]
+        model = store.get("_model")
+        return [(text, lang) for lang in languages], llm, model
 
     def exec(self, prep_result):
+        items, llm, model = prep_result
         results = []
-        for text, language in prep_result:
+        for text, language in items:
             prompt = f"""\
 Please translate the following markdown into {language}.
 Keep the original markdown format, links and code blocks.
@@ -31,9 +35,11 @@ Original:
 {text}
 
 Translated:"""
-            translation = call_llm(prompt)
+            response = llm.call(prompt, model=model)
+            if not response.success:
+                raise RuntimeError(f"LLM failed: {response.error_history}")
             print(f"  Translated → {language}")
-            results.append({"language": language, "translation": translation})
+            results.append({"language": language, "translation": response.content})
         return results
 
     def post(self, store, prep_result, exec_result):
@@ -49,17 +55,24 @@ Translated:"""
         return "done"
 
 
-if __name__ == "__main__":
-    # Use pocoflow's own README as input
+@click.command()
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(provider, model):
+    """Translate the PocoFlow README into multiple languages."""
     readme_path = os.path.join(os.path.dirname(__file__), "..", "..", "README.md")
     with open(readme_path) as f:
         text = f.read()
+
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
 
     store = Store(
         data={
             "text": text,
             "languages": ["Chinese", "Spanish", "French"],
             "output_dir": os.path.join(os.path.dirname(__file__), "translations"),
+            "_llm": llm,
+            "_model": model,
         },
         name="batch_translate",
     )
@@ -72,3 +85,7 @@ if __name__ == "__main__":
 
     print(f"\nDone in {time.perf_counter() - t0:.1f}s")
     print(f"Translations saved to: {store['output_dir']}")
+
+
+if __name__ == "__main__":
+    main()

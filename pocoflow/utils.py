@@ -9,7 +9,7 @@ Features
 - **call_llm**: Simple convenience function mirroring PocketFlow's pattern.
 - **visualize_flow**: Generate Mermaid diagrams from any PocoFlow Flow.
 
-Supported LLM providers: OpenAI, Anthropic, Google Gemini, OpenRouter.
+Supported LLM providers: OpenAI, Anthropic, Google Gemini, OpenRouter, Ollama.
 Provider selection and model defaults are configurable via environment
 variables (see UniversalLLMProvider docstring).
 """
@@ -73,6 +73,7 @@ class UniversalLLMProvider:
     LLM_MODEL_ANTHROPIC Override model for Anthropic.
     LLM_MODEL_GEMINI    Override model for Google Gemini.
     LLM_MODEL_OPENROUTER Override model for OpenRouter.
+    LLM_MODEL_OLLAMA    Override model for Ollama.
     LLM_MAX_RETRIES     Max retry attempts per provider (default: 3).
     LLM_INITIAL_WAIT    Initial backoff seconds (default: 1).
     LLM_MAX_WAIT        Maximum backoff seconds (default: 30).
@@ -80,6 +81,7 @@ class UniversalLLMProvider:
     ANTHROPIC_API_KEY   API key for Anthropic.
     GEMINI_API_KEY      API key for Google Gemini.
     OPENROUTER_API_KEY  API key for OpenRouter.
+    OLLAMA_HOST         Ollama base URL (default: ``http://localhost:11434``).
     """
 
     def __init__(
@@ -91,7 +93,7 @@ class UniversalLLMProvider:
         max_wait: float | None = None,
     ):
         self.primary_provider = primary_provider or os.environ.get("LLM_PROVIDER", "openai")
-        self.fallback_providers = fallback_providers or ["anthropic", "gemini", "openrouter"]
+        self.fallback_providers = fallback_providers if fallback_providers is not None else ["anthropic", "gemini", "openrouter", "ollama"]
         self.max_retries = max_retries or int(os.environ.get("LLM_MAX_RETRIES", "3"))
         self.initial_wait = initial_wait or float(os.environ.get("LLM_INITIAL_WAIT", "1"))
         self.max_wait = max_wait or float(os.environ.get("LLM_MAX_WAIT", "30"))
@@ -101,6 +103,7 @@ class UniversalLLMProvider:
             "anthropic": self._create_anthropic_client,
             "gemini": self._create_gemini_client,
             "openrouter": self._create_openrouter_client,
+            "ollama": self._create_ollama_client,
         }
 
         # Per-provider success/failure tracking
@@ -147,12 +150,21 @@ class UniversalLLMProvider:
             raise ValueError("OPENROUTER_API_KEY not set")
         return OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
 
+    @staticmethod
+    def _create_ollama_client():
+        from openai import OpenAI
+
+        host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+        return OpenAI(base_url=f"{host}/v1", api_key="ollama")
+
     # -- public API ----------------------------------------------------------
 
     def call(
         self,
-        prompt: str,
+        prompt: str | None = None,
         model: str | None = None,
+        *,
+        messages: list[dict] | None = None,
         **kwargs,
     ) -> LLMResponse:
         """Call the LLM with self-healing retry and provider fallback.
@@ -160,9 +172,12 @@ class UniversalLLMProvider:
         Parameters
         ----------
         prompt :
-            The user prompt to send.
+            The user prompt to send (wrapped in a single-message list).
         model :
             Override the default model for this call.
+        messages :
+            Full conversation history as a list of ``{"role": ..., "content": ...}``
+            dicts.  When provided, *prompt* is ignored.
         **kwargs :
             Extra keyword arguments forwarded to the provider SDK.
 
@@ -171,6 +186,12 @@ class UniversalLLMProvider:
         LLMResponse
             Structured response (check ``.success`` before using ``.content``).
         """
+        if messages is None and prompt is None:
+            raise ValueError("Either prompt or messages must be provided")
+
+        if messages is None:
+            messages = [{"role": "user", "content": prompt}]
+
         start_time = time.time()
         error_history: List[Dict[str, Any]] = []
 
@@ -183,7 +204,7 @@ class UniversalLLMProvider:
                 continue
 
             result = self._try_provider(
-                provider_name, prompt, model, error_history, **kwargs
+                provider_name, messages, model, error_history, **kwargs
             )
 
             if result.success:
@@ -225,7 +246,7 @@ class UniversalLLMProvider:
     def _try_provider(
         self,
         provider_name: str,
-        prompt: str,
+        messages: list[dict],
         model: str | None,
         global_errors: List[Dict[str, Any]],
         **kwargs,
@@ -238,13 +259,13 @@ class UniversalLLMProvider:
         for attempt in range(self.max_retries):
             try:
                 # On retries, inject error context so the LLM can self-correct
-                effective_prompt = (
-                    self._add_error_context(prompt, local_errors, global_errors)
+                effective_messages = (
+                    self._add_error_context(messages, local_errors, global_errors)
                     if attempt > 0
-                    else prompt
+                    else messages
                 )
 
-                content = self._make_call(client, provider_name, effective_prompt, model, **kwargs)
+                content = self._make_call(client, provider_name, effective_messages, model, **kwargs)
 
                 return LLMResponse(
                     content=content,
@@ -286,32 +307,33 @@ class UniversalLLMProvider:
 
     @staticmethod
     def _add_error_context(
-        original_prompt: str,
+        original_messages: list[dict],
         local_errors: List[Dict[str, Any]],
         global_errors: List[Dict[str, Any]],
-    ) -> str:
+    ) -> list[dict]:
         """Inject recent error context so the LLM can self-correct."""
         recent = (local_errors + global_errors)[-3:]
         if not recent:
-            return original_prompt
+            return original_messages
 
         lines = ["Previous attempts failed with the following errors:"]
         for i, err in enumerate(recent, 1):
             lines.append(f"{i}. {err['error_type']}: {err['error']}")
         lines.append("")
         lines.append("Please analyse these errors and provide a corrected response.")
-        lines.append(f"Original request: {original_prompt}")
-        return "\n".join(lines)
+        error_note = "\n".join(lines)
+
+        return original_messages + [{"role": "user", "content": error_note}]
 
     @staticmethod
     def _make_call(
-        client, provider_name: str, prompt: str, model: str | None, **kwargs
+        client, provider_name: str, messages: list[dict], model: str | None, **kwargs
     ) -> str:
         """Dispatch to the appropriate SDK method."""
-        if provider_name in ("openai", "openrouter"):
+        if provider_name in ("openai", "openrouter", "ollama"):
             resp = client.chat.completions.create(
                 model=model or UniversalLLMProvider._default_model(provider_name),
-                messages=[{"role": "user", "content": prompt}],
+                messages=messages,
                 **kwargs,
             )
             return resp.choices[0].message.content
@@ -319,16 +341,20 @@ class UniversalLLMProvider:
         if provider_name == "anthropic":
             resp = client.messages.create(
                 model=model or UniversalLLMProvider._default_model(provider_name),
-                messages=[{"role": "user", "content": prompt}],
+                messages=messages,
                 max_tokens=kwargs.pop("max_tokens", 1024),
                 **kwargs,
             )
             return resp.content[0].text
 
         if provider_name == "gemini":
+            # Convert messages to a single string for Gemini
+            contents = "\n".join(
+                f"{m['role']}: {m['content']}" for m in messages
+            )
             resp = client.models.generate_content(
                 model=model or UniversalLLMProvider._default_model(provider_name),
-                contents=prompt,
+                contents=contents,
                 **kwargs,
             )
             return resp.text
@@ -348,6 +374,7 @@ class UniversalLLMProvider:
             "anthropic": "claude-sonnet-4-5-20250929",
             "gemini": "gemini-2.0-flash",
             "openrouter": "anthropic/claude-sonnet-4-5-20250929",
+            "ollama": "llama3.2",
         }
         return defaults.get(provider_name, "gpt-4o")
 
@@ -450,12 +477,13 @@ def _get_llm() -> UniversalLLMProvider:
     return _global_llm
 
 
-def call_llm(prompt: str, **kwargs) -> str:
+def call_llm(prompt: str | None = None, *, messages: list[dict] | None = None, **kwargs) -> str:
     """Simple LLM call — returns the response text.
 
     Uses the global :class:`UniversalLLMProvider` with self-healing retry.
+    Pass either *prompt* (single string) or *messages* (conversation list).
     """
-    response = _get_llm().call(prompt, **kwargs)
+    response = _get_llm().call(prompt, messages=messages, **kwargs)
     if not response.success:
         errors = response.error_history or []
         last = errors[-1]["error"] if errors else "unknown error"

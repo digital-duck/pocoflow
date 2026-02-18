@@ -3,7 +3,15 @@
 import re
 import yaml
 from pocoflow import Node
-from utils import call_llm, execute_python
+from utils import execute_python
+
+
+def _llm_call(llm, model, prompt):
+    """Helper: call LLM and return content or raise on failure."""
+    response = llm.call(prompt, model=model)
+    if not response.success:
+        raise RuntimeError(f"LLM failed: {response.error_history}")
+    return response.content
 
 
 class GenerateTestCases(Node):
@@ -11,12 +19,13 @@ class GenerateTestCases(Node):
     retry_delay = 1.0
 
     def prep(self, store):
-        return store["requirement"]
+        return store["requirement"], store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
+        requirement, llm, model = prep_result
         prompt = f"""Generate test cases for this requirement:
 
-{prep_result}
+{requirement}
 
 Return test cases in YAML format:
 
@@ -29,7 +38,7 @@ test_cases:
 ```
 
 Generate 5 diverse test cases covering edge cases."""
-        response = call_llm(prompt)
+        response = _llm_call(llm, model, prompt)
         match = re.search(r"```yaml(.*?)```", response, re.DOTALL)
         yaml_str = match.group(1).strip() if match else response.strip()
         return yaml.safe_load(yaml_str)
@@ -52,9 +61,13 @@ class ImplementFunction(Node):
             "test_cases": store["test_cases"],
             "previous_impl": store.get("implementation") or "",
             "test_results": store.get("test_results") or [],
+            "llm": store["_llm"],
+            "model": store.get("_model"),
         }
 
     def exec(self, prep_result):
+        llm = prep_result["llm"]
+        model = prep_result["model"]
         test_info = "\n".join(
             f"  {tc['input']} -> {tc['expected']}"
             for tc in prep_result["test_cases"]
@@ -81,7 +94,7 @@ Fix the issues.
 Return ONLY the Python function implementation, no test code.
 Wrap in ```python ... ```."""
 
-        response = call_llm(prompt)
+        response = _llm_call(llm, model, prompt)
         match = re.search(r"```python(.*?)```", response, re.DOTALL)
         return match.group(1).strip() if match else response.strip()
 
@@ -147,9 +160,13 @@ class Revise(Node):
             "requirement": store["requirement"],
             "implementation": store["implementation"],
             "test_results": store["test_results"],
+            "llm": store["_llm"],
+            "model": store.get("_model"),
         }
 
     def exec(self, prep_result):
+        llm = prep_result["llm"]
+        model = prep_result["model"]
         failures = [r for r in prep_result["test_results"] if not r["passed"]]
         failure_info = "\n".join(
             f"  Input: {f['input']}, Expected: {f['expected']}, Got: {f['output']}"
@@ -168,7 +185,7 @@ Failed tests:
 
 Return ONLY the fixed Python function. Wrap in ```python ... ```."""
 
-        response = call_llm(prompt)
+        response = _llm_call(llm, model, prompt)
         match = re.search(r"```python(.*?)```", response, re.DOTALL)
         return match.group(1).strip() if match else response.strip()
 

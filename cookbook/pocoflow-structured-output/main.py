@@ -5,8 +5,9 @@ retry on parse failure.
 """
 
 import yaml
+import click
 from pocoflow import Node, Flow, Store
-from utils import call_llm
+from pocoflow.utils import UniversalLLMProvider
 
 
 class ResumeParserNode(Node):
@@ -17,11 +18,15 @@ class ResumeParserNode(Node):
         return {
             "resume_text": store["resume_text"],
             "target_skills": store["target_skills"],
+            "llm": store["_llm"],
+            "model": store.get("_model"),
         }
 
     def exec(self, prep_result):
         resume_text = prep_result["resume_text"]
         target_skills = prep_result["target_skills"]
+        llm = prep_result["llm"]
+        model = prep_result["model"]
 
         skill_list = "\n".join(f"{i}: {s}" for i, s in enumerate(target_skills))
 
@@ -60,10 +65,12 @@ skill_indexes:
 
 Generate the YAML output now:
 """
-        response = call_llm(prompt)
+        response = llm.call(prompt, model=model)
+        if not response.success:
+            raise RuntimeError(f"LLM failed: {response.error_history}")
 
         # Extract YAML block
-        yaml_str = response.split("```yaml")[1].split("```")[0].strip()
+        yaml_str = response.content.split("```yaml")[1].split("```")[0].strip()
         result = yaml.safe_load(yaml_str)
 
         # Validate structure
@@ -88,7 +95,11 @@ Generate the YAML output now:
         return "done"
 
 
-if __name__ == "__main__":
+@click.command()
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(provider, model):
+    """Parse a resume and extract structured data via LLM."""
     print("=== Resume Parser — Structured Output ===\n")
 
     target_skills = [
@@ -101,14 +112,19 @@ if __name__ == "__main__":
         "Data Analysis",                 # 6
     ]
 
-    with open("data.txt") as f:
+    import os
+    with open(os.path.join(os.path.dirname(__file__), "data.txt")) as f:
         resume_text = f.read()
+
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
 
     store = Store(
         data={
             "resume_text": resume_text,
             "target_skills": target_skills,
             "structured_data": {},
+            "_llm": llm,
+            "_model": model,
         },
         name="resume_parser",
     )
@@ -124,3 +140,7 @@ if __name__ == "__main__":
             if 0 <= idx < len(target_skills):
                 print(f"  - {target_skills[idx]} (index {idx})")
         print("---------------------------\n")
+
+
+if __name__ == "__main__":
+    main()

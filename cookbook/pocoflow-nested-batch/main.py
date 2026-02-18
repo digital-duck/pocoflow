@@ -60,6 +60,9 @@ class GenerateReport(Node):
     def prep(self, store):
         return store["results"]
 
+    def exec(self, prep_result):
+        return prep_result
+
     def post(self, store, prep_result, exec_result):
         results = prep_result
         print("\n===== School Report =====\n")

@@ -8,14 +8,25 @@ Retrieval-Augmented Generation with FAISS vector search.
 - **FAISS vector search**: efficient similarity search
 - **Batch-in-exec pattern**: embed all chunks in a loop (replaces PocketFlow's BatchNode)
 - **5 nodes across 2 flows**: ChunkDocuments, EmbedAndIndex, EmbedQuery, RetrieveDocuments, GenerateAnswer
+- **Multi-provider**: LLM answer generation works with any supported provider
 
 ## Run It
 
 ```bash
-export ANTHROPIC_API_KEY="your-key"
-export OPENAI_API_KEY="your-key"    # for embeddings
 pip install -r requirements.txt
-python main.py
+
+# Requires OpenAI for embeddings + any LLM provider for answer generation
+export OPENAI_API_KEY="your-key"
+
+# Anthropic (default)
+export ANTHROPIC_API_KEY="your-key"
+python main.py --provider anthropic
+
+# Ollama (local, still needs OpenAI for embeddings)
+python main.py --provider ollama --model llama3.2
+
+# See all options
+python main.py --help
 ```
 
 ## How It Works
@@ -34,6 +45,6 @@ flowchart LR
 
 ## Files
 
-- `main.py` — two-phase entry point
+- `main.py` — two-phase CLI entry point
 - `nodes.py` — 5 node implementations
-- `utils.py` — Anthropic Claude + OpenAI embeddings + FAISS helpers
+- `utils.py` — OpenAI embeddings + FAISS helpers

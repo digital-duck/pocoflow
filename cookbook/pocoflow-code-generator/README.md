@@ -9,15 +9,25 @@ Test-driven code generation: generates tests, implements, runs, and revises.
 - **Safe code execution**: runs generated code in subprocess with timeout
 - **YAML structured output**: test cases in YAML format
 - **Batch-in-exec pattern**: RunTests loops over test cases (replaces PocketFlow's BatchNode)
+- **Multi-provider**: works with any supported LLM provider
 
 ## Run It
 
 ```bash
-export ANTHROPIC_API_KEY="your-key"
 pip install -r requirements.txt
+
+# Anthropic (default)
+export ANTHROPIC_API_KEY="your-key"
 python main.py
-# or with a custom requirement:
-python main.py "Write a function called fibonacci that returns the nth fibonacci number"
+
+# With a custom requirement
+python main.py --provider openai "Write a function called fibonacci that returns the nth fibonacci number"
+
+# Ollama (local)
+python main.py --provider ollama --model llama3.2
+
+# See all options
+python main.py --help
 ```
 
 ## How It Works
@@ -33,6 +43,6 @@ flowchart LR
 
 ## Files
 
-- `main.py` — flow wiring and entry point
+- `main.py` — flow wiring and CLI entry point
 - `nodes.py` — 4 node implementations
-- `utils.py` — Anthropic Claude + safe Python execution
+- `utils.py` — safe Python code execution

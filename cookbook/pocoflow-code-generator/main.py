@@ -4,15 +4,19 @@ Demonstrates: code generation, test execution, revision loop, YAML structured ou
 Original PocketFlow uses BatchNode for RunTests; PocoFlow loops inside exec().
 """
 
-import sys
+import click
 from pocoflow import Flow, Store
+from pocoflow.utils import UniversalLLMProvider
 from nodes import GenerateTestCases, ImplementFunction, RunTests, Revise
 
 
-def main():
-    requirement = "Write a function called 'merge_sorted' that takes two sorted lists and returns a single sorted list."
-    if len(sys.argv) > 1:
-        requirement = " ".join(sys.argv[1:])
+@click.command()
+@click.argument("requirement", default="Write a function called 'merge_sorted' that takes two sorted lists and returns a single sorted list.")
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(requirement, provider, model):
+    """Generate code from a requirement using test-driven development."""
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
 
     gen_tests = GenerateTestCases()
     implement = ImplementFunction()
@@ -21,7 +25,7 @@ def main():
 
     gen_tests.then("default", implement)
     implement.then("default", run_tests)
-    run_tests.then("success", None)  # no successor -> ends
+    run_tests.then("success", None)
     run_tests.then("failure", revise)
     revise.then("default", run_tests)
 
@@ -32,6 +36,8 @@ def main():
             "implementation": "",
             "test_results": [],
             "revision_count": 0,
+            "_llm": llm,
+            "_model": model,
         },
         name="code_generator",
     )

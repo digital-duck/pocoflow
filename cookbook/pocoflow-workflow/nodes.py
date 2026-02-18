@@ -1,9 +1,15 @@
 """Article workflow nodes: outline, write sections, apply style."""
 
-import re
 import yaml
 from pocoflow import Node
-from utils import call_llm
+
+
+def _llm_call(llm, model, prompt):
+    """Helper: call LLM and return content or raise on failure."""
+    response = llm.call(prompt, model=model)
+    if not response.success:
+        raise RuntimeError(f"LLM failed: {response.error_history}")
+    return response.content
 
 
 class GenerateOutline(Node):
@@ -11,11 +17,12 @@ class GenerateOutline(Node):
     retry_delay = 1.0
 
     def prep(self, store):
-        return store["topic"]
+        return store["topic"], store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
+        topic, llm, model = prep_result
         prompt = f"""
-Create a simple outline for an article about {prep_result}.
+Create a simple outline for an article about {topic}.
 Include at most 3 main sections (no subsections).
 
 Output the sections in YAML format as shown below:
@@ -29,7 +36,7 @@ sections:
     - |
         Third section
 ```"""
-        response = call_llm(prompt)
+        response = _llm_call(llm, model, prompt)
         yaml_str = response.split("```yaml")[1].split("```")[0].strip()
         return yaml.safe_load(yaml_str)
 
@@ -50,11 +57,12 @@ class WriteSections(Node):
     """Writes content for each section. Replaces PocketFlow's BatchNode with a loop in exec()."""
 
     def prep(self, store):
-        return store["sections"]
+        return store["sections"], store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
+        sections, llm, model = prep_result
         results = []
-        for i, section in enumerate(prep_result):
+        for i, section in enumerate(sections):
             prompt = f"""
 Write a short paragraph (MAXIMUM 100 WORDS) about this section:
 
@@ -66,8 +74,8 @@ Requirements:
 - Keep it very concise (no more than 100 words)
 - Include one brief example or analogy
 """
-            content = call_llm(prompt)
-            print(f"  Completed section {i + 1}/{len(prep_result)}: {section.strip()}")
+            content = _llm_call(llm, model, prompt)
+            print(f"  Completed section {i + 1}/{len(sections)}: {section.strip()}")
             results.append((section.strip(), content))
         return results
 
@@ -90,13 +98,14 @@ Requirements:
 
 class ApplyStyle(Node):
     def prep(self, store):
-        return store["draft"]
+        return store["draft"], store["_llm"], store.get("_model")
 
     def exec(self, prep_result):
+        draft, llm, model = prep_result
         prompt = f"""
 Rewrite the following draft in a conversational, engaging style:
 
-{prep_result}
+{draft}
 
 Make it:
 - Conversational and warm in tone
@@ -104,7 +113,7 @@ Make it:
 - Add analogies and metaphors where appropriate
 - Include a strong opening and conclusion
 """
-        return call_llm(prompt)
+        return _llm_call(llm, model, prompt)
 
     def post(self, store, prep_result, exec_result):
         store["final_article"] = exec_result

@@ -4,15 +4,19 @@ Demonstrates: multi-step workflow, YAML structured output, batch-in-exec pattern
 Original PocketFlow uses BatchNode; here we loop inside exec().
 """
 
-import sys
+import click
 from pocoflow import Flow, Store
+from pocoflow.utils import UniversalLLMProvider
 from nodes import GenerateOutline, WriteSections, ApplyStyle
 
 
-def main():
-    topic = "AI Safety"
-    if len(sys.argv) > 1:
-        topic = " ".join(sys.argv[1:])
+@click.command()
+@click.argument("topic", default="AI Safety")
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(topic, provider, model):
+    """Write an article on a given topic using a 3-step LLM pipeline."""
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
 
     outline = GenerateOutline()
     write = WriteSections()
@@ -20,10 +24,16 @@ def main():
 
     outline.then("default", write)
     write.then("default", style)
-    # style returns "default" with no successor -> flow ends
 
     store = Store(
-        data={"topic": topic, "sections": [], "draft": "", "final_article": ""},
+        data={
+            "topic": topic,
+            "sections": [],
+            "draft": "",
+            "final_article": "",
+            "_llm": llm,
+            "_model": model,
+        },
         name="article_workflow",
     )
 

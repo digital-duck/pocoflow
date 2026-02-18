@@ -7,13 +7,22 @@ Extracts structured data from a resume using LLM prompt engineering and YAML par
 - **Structured LLM output**: prompt engineering for YAML
 - **Validation with assertions**: retry on malformed output
 - **max_retries**: automatically re-attempts on parse failure
+- **Multi-provider**: works with any supported LLM provider
 
 ## Run It
 
 ```bash
-export ANTHROPIC_API_KEY="your-key"
 pip install -r requirements.txt
-python main.py
+
+# Anthropic (default)
+export ANTHROPIC_API_KEY="your-key"
+python main.py --provider anthropic
+
+# Ollama (local)
+python main.py --provider ollama --model llama3.2
+
+# See all options
+python main.py --help
 ```
 
 ## How It Works
@@ -25,7 +34,7 @@ flowchart LR
 
 A single `ResumeParserNode`:
 1. **prep** — reads resume text and target skills from Store
-2. **exec** — sends resume to Claude, parses YAML response, validates structure
+2. **exec** — sends resume to LLM, parses YAML response, validates structure
 3. **post** — stores structured data, prints results
 
 If the LLM returns malformed YAML or missing fields, the assertion fails and

@@ -4,17 +4,19 @@ Demonstrates: supervisor pattern, answer validation, retry loop.
 Original PocketFlow uses Flow-as-Node; here we flatten to a single flow.
 """
 
-import sys
+import click
 from pocoflow import Flow, Store
+from pocoflow.utils import UniversalLLMProvider
 from nodes import DecideAction, SearchWeb, UnreliableAnswerNode, SupervisorNode
 
 
-def main():
-    question = "Who won the Nobel Prize in Physics 2024?"
-    for arg in sys.argv[1:]:
-        if arg.startswith("--"):
-            question = arg[2:]
-            break
+@click.command()
+@click.argument("question", default="Who won the Nobel Prize in Physics 2024?")
+@click.option("--provider", default="anthropic", help="LLM provider (openai, anthropic, gemini, openrouter, ollama)")
+@click.option("--model", default=None, help="Model name (provider default if omitted)")
+def main(question, provider, model):
+    """Research a question with supervisor validation."""
+    llm = UniversalLLMProvider(primary_provider=provider, fallback_providers=[])
 
     decide = DecideAction()
     search = SearchWeb()
@@ -25,11 +27,16 @@ def main():
     decide.then("answer", answer)
     search.then("decide", decide)
     answer.then("check", supervisor)
-    supervisor.then("retry", decide)  # rejected -> restart research
-    # "approved" has no successor -> flow ends
+    supervisor.then("retry", decide)
 
     store = Store(
-        data={"question": question, "context": "", "answer": ""},
+        data={
+            "question": question,
+            "context": "",
+            "answer": "",
+            "_llm": llm,
+            "_model": model,
+        },
         name="supervised_agent",
     )
 
