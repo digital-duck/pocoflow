@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pocoflow"
-version = "0.2.0"
+version = "0.2.1"
 description = "Lightweight LLM workflow orchestration — a hardened evolution of PocketFlow"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
-    { name = "digital-duck", email = "digital-duck@users.noreply.github.com" },
+    {name = "Digital Duck", email = "p2p2learn@outlook.com"},
 ]
 keywords = ["llm", "workflow", "orchestration", "agent", "pipeline", "etl"]
 classifiers = [
